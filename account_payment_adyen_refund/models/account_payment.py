@@ -42,9 +42,10 @@ class AccountPayment(models.Model):
         transaction_model = self.env["payment.transaction"]
         acquirer = self._get_acquirer()
         invoice = self.invoice_ids[0]
+        reference = self._compute_reference(invoice.invoice_origin)
         values = {
             "acquirer_id": acquirer.id,
-            "reference": invoice.invoice_origin,
+            "reference": reference,
             "amount": float(self.amount),
             "currency_id": self.currency_id.id,
             "partner_id": self.partner_id.id,
@@ -70,3 +71,12 @@ class AccountPayment(models.Model):
                 _("No payment acquirer linked to journal %s") % journal.name
             )
         return acquirer
+
+    def _compute_reference(self, reference, suffix="", iteration=""):
+        """Adjust reference to avoid uniqueness constraint"""
+        existing_count = self.env["payment.transaction"].search_count(
+            [("reference", "=", reference)]
+        )
+        if not existing_count:
+            return reference
+        return reference + "-" + str(existing_count)
