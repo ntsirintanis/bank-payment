@@ -58,6 +58,8 @@ class AccountPayment(models.Model):
         }
         refund_tx = transaction_model.create(values)
         self.write({"payment_transaction_id": refund_tx.id})
+        invoice.write({"refund_status": "send"})
+        self.env.cr.commit()
         refund_tx._adyen_send_refund()
         invoice.refund_status = "submitted"
 

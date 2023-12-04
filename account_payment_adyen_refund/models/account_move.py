@@ -23,6 +23,7 @@ class AccountMove(models.Model):
     refund_status = fields.Selection(
         selection=[
             ("none", "No refund submitted"),
+            ("send", "Sending request to payment provider"),
             ("submitted", "Requested from payment provider"),
             ("done", "Confirmed by payment provider"),
             ("failed", "Payment provider rejected payment"),
