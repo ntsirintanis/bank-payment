@@ -74,10 +74,10 @@ class AccountPayment(models.Model):
             )
         return acquirer
 
-    def _compute_reference(self, reference, suffix="", iteration=""):
+    def _compute_reference(self, reference):
         """Adjust reference to avoid uniqueness constraint"""
         existing_count = self.env["payment.transaction"].search_count(
-            [("reference", "=", reference)]
+            [("reference", "=like", reference + "%")]
         )
         if not existing_count:
             return reference
