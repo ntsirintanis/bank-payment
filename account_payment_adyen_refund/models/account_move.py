@@ -6,6 +6,7 @@ from odoo import fields, models
 
 class AccountMove(models.Model):
     """Support Adyen Refund."""
+
     _inherit = "account.move"
 
     # This field is identical to the one in base_transaction_id,
