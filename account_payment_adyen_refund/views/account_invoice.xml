@@ -10,7 +10,7 @@
                 <page
                     id="page_refund"
                     string="Refund Info"
-                    attrs="{'invisible': [('type', '!=', 'out_refund')]}"
+                    attrs="{'invisible': [('move_type', '!=', 'out_refund')]}"
                 >
                     <group colspan="4" col="2">
                         <field name="transaction_id" />
