@@ -9,7 +9,11 @@
     "author": "Therp BV, Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/bank-payment",
     "depends": ["account", "payment_adyen"],
-    "data": ["data/account_payment_method.xml", "views/account_invoice.xml"],
+    "data": [
+        "data/account_payment_method.xml",
+        "data/ir_cron.xml",
+        "views/account_invoice.xml",
+    ],
     "installable": True,
     "auto_install": False,
 }

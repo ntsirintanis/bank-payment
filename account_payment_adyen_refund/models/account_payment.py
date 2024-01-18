@@ -17,7 +17,10 @@ class AccountPayment(models.Model):
         # Refunds via Adyen work only for single invoices.
         if len(invoice) != 1:
             raise UserError(
-                _("You can only refund a single invoice per payment through Adyen")
+                _(
+                    "Payment %s: You can only refund a single invoice per payment through Adyen"
+                )
+                % self.name
             )
         # Check validity of invoices for adyen refund.
         if invoice.refund_status != "none":
@@ -42,13 +45,17 @@ class AccountPayment(models.Model):
             "partner_id": self.partner_id.id,
             "payment_id": self.id,
             "provider_id": self.env.ref("payment.payment_provider_adyen").id,
+            "provider_reference": invoice.transaction_id,
             "invoice_ids": [(4, invoice.id)],
         }
         refund_tx = transaction_model.create(values)
         self.write({"payment_transaction_id": refund_tx.id})
         invoice.write({"refund_status": "send"})
         self.env.cr.commit()
-        refund_tx._send_refund_request()
+        try:
+            refund_tx._send_refund_request()
+        except Exception as e:
+            raise UserError(str(e))
         invoice.refund_status = "submitted"
 
     def _compute_reference(self, reference):
