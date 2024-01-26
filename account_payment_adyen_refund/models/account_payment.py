@@ -38,13 +38,15 @@ class AccountPayment(models.Model):
         transaction_model = self.env["payment.transaction"]
         invoice = self.reconciled_invoice_ids
         reference = self._compute_reference(invoice.invoice_origin)
+        provider_id = self._compute_provider_id(self.currency_id)
         values = {
             "reference": reference,
-            "amount": float(self.amount),
+            "amount": -float(self.amount),
             "currency_id": self.currency_id.id,
             "partner_id": self.partner_id.id,
             "payment_id": self.id,
-            "provider_id": self.env.ref("payment.payment_provider_adyen").id,
+            "provider_id": provider_id.id,
+            "operation": "refund",
             "provider_reference": invoice.transaction_id,
             "invoice_ids": [(4, invoice.id)],
         }
@@ -56,7 +58,7 @@ class AccountPayment(models.Model):
             refund_tx._send_refund_request()
         except Exception as e:
             raise UserError(str(e))
-        invoice.refund_status = "submitted"
+        refund_tx.invoice_ids.write({"refund_status": "submitted"})
 
     def _compute_reference(self, reference):
         """Adjust reference to avoid uniqueness constraint"""
@@ -66,3 +68,14 @@ class AccountPayment(models.Model):
         if not existing_count:
             return reference
         return reference + "-" + str(existing_count)
+
+    def _compute_provider_id(self, currency_id):
+        """Adjust reference to avoid uniqueness constraint"""
+        provider = self.env["payment.provider"].search(
+            [("name", "=", "Adyen %s" % currency_id.name)], limit=1
+        )
+        if not provider:
+            raise UserError(
+                _("No Adyen provider exists for currency %s") % currency_id.name
+            )
+        return provider
